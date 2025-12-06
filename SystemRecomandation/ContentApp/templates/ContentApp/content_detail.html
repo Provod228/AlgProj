@@ -1,0 +1,178 @@
+{% extends 'ContentApp/base.html' %}
+
+{% block title %}{{ content.title }} - Content App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Основная информация -->
+    <div class="col-md-8">
+        <div class="card">
+            {% if content.image %}
+            <img src="{{ content.image.url }}" class="card-img-top" alt="{{ content.title }}" style="max-height: 400px; object-fit: cover;">
+            {% endif %}
+            
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h1 class="card-title">{{ content.title }}</h1>
+                    <button class="favorite-btn {% if is_favorite %}active{% endif %}" 
+                            onclick="toggleFavorite({{ content.id }}, $(this))">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+                
+                <p class="card-text">{{ content.summary }}</p>
+                
+                <!-- Цена -->
+                <div class="alert alert-success">
+                    <h4 class="alert-heading">Цена: {{ content.price }} ₽</h4>
+                    {% if content.is_digital %}
+                    <i class="fas fa-download"></i> Цифровой товар
+                    {% else %}
+                    <i class="fas fa-truck"></i> Физический товар
+                    {% endif %}
+                </div>
+                
+                <!-- Категории -->
+                <div class="mb-4">
+                    <h5>Категории:</h5>
+                    {% for category in content.category.all %}
+                    <span class="badge bg-primary category-badge">{{ category.name }}</span>
+                    {% endfor %}
+                </div>
+                
+                <!-- Голосование за категории -->
+                <div class="mb-4">
+                    <h5>Оцените категории:</h5>
+                    <div class="vote-buttons">
+                        {% for category in content.category.all %}
+                        <div class="mb-2">
+                            <strong>{{ category.name }}:</strong>
+                            <button class="btn btn-sm btn-success" onclick="voteCategory({{ content.id }}, {{ category.id }}, 1)">
+                                <i class="fas fa-thumbs-up"></i> За
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="voteCategory({{ content.id }}, {{ category.id }}, -1)">
+                                <i class="fas fa-thumbs-down"></i> Против
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer">
+                <small class="text-muted">
+                    <i class="fas fa-user"></i> Автор: {{ content.author.username }}
+                    <i class="fas fa-calendar ms-2"></i> Создан: {{ content.created_at|date:"d.m.Y H:i" }}
+                    <i class="fas fa-sync-alt ms-2"></i> Обновлен: {{ content.updated_at|date:"d.m.Y H:i" }}
+                </small>
+            </div>
+        </div>
+        
+        <!-- Рейтинг -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Оцените этот товар:</h5>
+                
+                <!-- Средний рейтинг -->
+                <div class="mb-3">
+                    <strong>Средняя оценка: {{ avg_rating|floatformat:1 }}</strong>
+                    <div class="rating-stars">
+                        {% for i in "12345" %}
+                        {% if i|add:0 <= avg_rating %}
+                        <i class="fas fa-star"></i>
+                        {% elif i|add:0 <= avg_rating|add:"0.5" %}
+                        <i class="fas fa-star-half-alt"></i>
+                        {% else %}
+                        <i class="far fa-star"></i>
+                        {% endif %}
+                        {% endfor %}
+                        <span class="ms-2">({{ avg_rating|floatformat:1 }}/5)</span>
+                    </div>
+                </div>
+                
+                <!-- Пользовательская оценка -->
+                <div class="mb-3">
+                    <strong>Ваша оценка: {% if user_rating %}{{ user_rating }}/5{% else %}Не оценено{% endif %}</strong>
+                    <div class="btn-group" role="group">
+                        {% for i in "12345" %}
+                        <button type="button" class="btn btn-outline-warning {% if user_rating == i|add:0 %}active{% endif %}" 
+                                onclick="rateContent({{ content.id }}, {{ i }})">
+                            {{ i }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Боковая панель -->
+    <div class="col-md-4">
+        <!-- Статистика по категориям -->
+        {% if categories_vote %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Распределение по категориям</h5>
+            </div>
+            <div class="card-body">
+                {% for category, percentage in categories_vote.items %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ category }}</span>
+                        <span>{{ percentage|floatformat:1 }}%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ percentage }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Похожие товары -->
+        {% if similar_content %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-random"></i> Похожие товары</h5>
+            </div>
+            <div class="card-body similar-content">
+                {% for similar in similar_content %}
+                <div class="mb-3">
+                    <h6><a href="{% url 'content_detail' similar.id %}">{{ similar.title }}</a></h6>
+                    <small class="text-muted">{{ similar.price }} ₽</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    // Функция для голосования за категории
+    function voteCategory(contentId, categoryId, vote) {
+        $.ajax({
+            url: '{% url "api_category_vote" %}',
+            type: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                content_id: contentId,
+                category_id: categoryId,
+                vote: vote
+            }),
+            success: function(response) {
+                alert('Ваш голос учтен!');
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Ошибка: ' + xhr.responseJSON.error);
+            }
+        });
+    }
+</script>
+{% endblock %}
+{% endblock %}

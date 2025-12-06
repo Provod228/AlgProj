@@ -1,0 +1,37 @@
+<!-- about.html -->
+{% extends 'ContentApp/base.html' %}
+
+{% block title %}О нас - Content App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">О нашем приложении</h1>
+
+                <p class="lead">
+                    Content App — это интеллектуальная система рекомендаций товаров с использованием машинного обучения.
+                </p>
+
+                <h3>Наши возможности:</h3>
+                <ul>
+                    <li>Персональные рекомендации на основе ваших предпочтений</li>
+                    <li>Интеллектуальный поиск похожих товаров</li>
+                    <li>Рейтинговая система с голосованием за категории</li>
+                    <li>Избранные товары</li>
+                    <li>Популярные товары по оценкам пользователей</li>
+                </ul>
+
+                <h3>Технологии:</h3>
+                <ul>
+                    <li>Django + Django REST Framework</li>
+                    <li>TensorFlow/Keras для нейронных сетей</li>
+                    <li>scikit-learn для алгоритмов рекомендаций</li>
+                    <li>Bootstrap 5 для интерфейса</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

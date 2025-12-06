@@ -1,0 +1,319 @@
+{% extends 'ContentApp/base.html' %}
+
+{% block title %}Профиль - Content App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Профиль пользователя -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-circle"></i> Мой профиль</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user fa-5x text-primary"></i>
+                </div>
+                
+                <h3>{{ user.username }}</h3>
+                
+                {% if user.first_name or user.last_name %}
+                <p class="lead">{{ user.first_name }} {{ user.last_name }}</p>
+                {% endif %}
+                
+                {% if user.email %}
+                <p><i class="fas fa-envelope"></i> {{ user.email }}</p>
+                {% endif %}
+                
+                <p class="text-muted">
+                    <i class="fas fa-calendar-alt"></i> Зарегистрирован: {{ user.date_joined|date:"d.m.Y" }}
+                </p>
+                
+                <div class="mt-4">
+                    <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit"></i> Редактировать профиль
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <i class="fas fa-key"></i> Сменить пароль
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Статистика</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3>{{ favorites_count }}</h3>
+                        <small class="text-muted">Избранное</small>
+                    </div>
+                    <div class="col-4">
+                        <h3>{{ ratings_count }}</h3>
+                        <small class="text-muted">Оценки</small>
+                    </div>
+                    <div class="col-4">
+                        <h3>{{ votes_count }}</h3>
+                        <small class="text-muted">Голоса</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Активность -->
+    <div class="col-md-8">
+        <!-- Последние избранные -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-heart text-danger"></i> Последние избранные</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_favorites %}
+                <div class="list-group">
+                    {% for favorite in recent_favorites %}
+                    <a href="{% url 'content_detail' favorite.content.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ favorite.content.title }}</h6>
+                            <small>{{ favorite.created_at|timesince }} назад</small>
+                        </div>
+                        <small class="text-muted">{{ favorite.content.price }} ₽</small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">У вас пока нет избранных товаров.</p>
+                <div class="text-center">
+                    <a href="{% url 'content_list' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-search"></i> Найти товары
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Последние оценки -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-star text-warning"></i> Последние оценки</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_ratings %}
+                <div class="list-group">
+                    {% for rating in recent_ratings %}
+                    <a href="{% url 'content_detail' rating.content.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ rating.content.title }}</h6>
+                            <span class="badge bg-warning">{{ rating.rating }}/5</span>
+                        </div>
+                        {% if rating.text %}
+                        <p class="mb-1">{{ rating.text|truncatechars:100 }}</p>
+                        {% endif %}
+                        <small class="text-muted">{{ rating.created_at|timesince }} назад</small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">Вы еще не оценивали товары.</p>
+                <div class="text-center">
+                    <a href="{% url 'content_list' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-star"></i> Оценить товары
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Рекомендации -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb text-info"></i> Рекомендации</h5>
+            </div>
+            <div class="card-body">
+                <p>На основе вашей активности система рекомендует:</p>
+                <div class="text-center">
+                    <a href="{% url 'recommendations' %}" class="btn btn-info">
+                        <i class="fas fa-lightbulb"></i> Посмотреть рекомендации
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования профиля -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Редактировать профиль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                        <small class="form-text text-muted">Имя пользователя нельзя изменить</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" value="{{ user.email }}">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="editFirstName" value="{{ user.first_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" id="editLastName" value="{{ user.last_name }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно смены пароля -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-key"></i> Сменить пароль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="changePasswordForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Текущий пароль</label>
+                        <input type="password" class="form-control" id="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Новый пароль</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Подтвердите новый пароль</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                    <div class="alert alert-info">
+                        <small><i class="fas fa-info-circle"></i> Пароль должен содержать не менее 8 символов</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сменить пароль</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Редактирование профиля
+        $('#editProfileForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                email: $('#editEmail').val(),
+                first_name: $('#editFirstName').val(),
+                last_name: $('#editLastName').val()
+            };
+            
+            $.ajax({
+                url: '{% url "api_profile" %}',
+                type: 'PUT',
+                headers: { 'X-CSRFToken': csrftoken },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    alert('Профиль успешно обновлен!');
+                    $('#editProfileModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Ошибка при обновлении профиля';
+                    if (xhr.responseJSON && xhr.responseJSON.detail) {
+                        errorMessage += ': ' + xhr.responseJSON.detail;
+                    }
+                    alert(errorMessage);
+                }
+            });
+        });
+        
+        // Смена пароля
+        $('#changePasswordForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const currentPassword = $('#currentPassword').val();
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
+            
+            if (newPassword !== confirmPassword) {
+                alert('Новые пароли не совпадают!');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                alert('Пароль должен содержать не менее 8 символов!');
+                return;
+            }
+            
+            const formData = {
+                password: newPassword,
+                password2: confirmPassword
+            };
+            
+            // Сначала проверяем текущий пароль
+            $.ajax({
+                url: '{% url "api_login" %}',
+                type: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username: '{{ user.username }}',
+                    password: currentPassword
+                }),
+                success: function() {
+                    // Если текущий пароль верен, меняем на новый
+                    $.ajax({
+                        url: '{% url "api_profile" %}',
+                        type: 'PUT',
+                        headers: { 'X-CSRFToken': csrftoken },
+                        contentType: 'application/json',
+                        data: JSON.stringify(formData),
+                        success: function(response) {
+                            alert('Пароль успешно изменен!');
+                            $('#changePasswordModal').modal('hide');
+                            $('#changePasswordForm')[0].reset();
+                        },
+                        error: function(xhr) {
+                            let errorMessage = 'Ошибка при смене пароля';
+                            if (xhr.responseJSON && xhr.responseJSON.password) {
+                                errorMessage += ': ' + xhr.responseJSON.password.join(', ');
+                            }
+                            alert(errorMessage);
+                        }
+                    });
+                },
+                error: function() {
+                    alert('Текущий пароль неверен!');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

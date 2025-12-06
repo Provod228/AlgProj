@@ -1,0 +1,102 @@
+{% extends 'ContentApp/base.html' %}
+
+{% block title %}Вход - Content App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-sign-in-alt"></i> Вход в систему</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Неверное имя пользователя или пароль.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Имя пользователя</label>
+                        {{ form.username }}
+                        {{ form.username.errors }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Пароль</label>
+                        {{ form.password }}
+                        {{ form.password.errors }}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                        <label class="form-check-label" for="remember_me">Запомнить меня</label>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{% url 'register' %}" class="btn btn-link">Регистрация</a>
+                        <span class="text-muted">|</span>
+                        <a href="#" class="btn btn-link">Забыли пароль?</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">Демо доступ: admin / admin</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Добавляем классы Bootstrap к полям формы
+        $('input[type="text"], input[type="password"]').addClass('form-control');
+        
+        // Фокусировка на поле username
+        $('#id_username').focus();
+        
+        // Валидация формы
+        $('form').on('submit', function() {
+            $('.is-invalid').removeClass('is-invalid');
+            
+            let isValid = true;
+            
+            // Проверяем обязательные поля
+            $('input[required]').each(function() {
+                if (!$(this).val()) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                }
+            });
+            
+            if (!isValid) {
+                return false;
+            }
+            
+            // Показываем индикатор загрузки
+            $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Вход...');
+        });
+    });
+</script>
+{% endblock %}

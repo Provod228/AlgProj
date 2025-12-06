@@ -1,0 +1,143 @@
+{% extends 'ContentApp/base.html' %}
+
+{% block title %}Регистрация - Content App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus"></i> Регистрация</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Пожалуйста, исправьте ошибки ниже.
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Имя пользователя *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="text-danger">
+                            {% for error in form.username.errors %}
+                            <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Только буквы, цифры и @/./+/-/_</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                            <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_first_name" class="form-label">Имя</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_last_name" class="form-label">Фамилия</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Пароль *</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password1.errors %}
+                            <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            Пароль должен содержать не менее 8 символов, не состоять только из цифр.
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Подтверждение пароля *</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password2.errors %}
+                            <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> Зарегистрироваться
+                        </button>
+                        <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sign-in-alt"></i> Уже есть аккаунт? Войти
+                        </a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">Регистрируясь, вы соглашаетесь с нашими условиями использования.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    $(document).ready(function() {
+        // Добавляем классы Bootstrap к полям формы
+        $('input[type="text"], input[type="email"], input[type="password"]').addClass('form-control');
+
+        // Валидация формы
+        $('form').on('submit', function() {
+            $('.is-invalid').removeClass('is-invalid');
+
+            let isValid = true;
+
+            // Проверяем обязательные поля
+            $('input[required]').each(function() {
+                if (!$(this).val()) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                }
+            });
+
+            // Проверяем совпадение паролей
+            const password1 = $('#id_password1').val();
+            const password2 = $('#id_password2').val();
+
+            if (password1 && password2 && password1 !== password2) {
+                $('#id_password2').addClass('is-invalid');
+                $('#id_password2').after('<div class="invalid-feedback">Пароли не совпадают</div>');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                return false;
+            }
+
+            // Показываем индикатор загрузки
+            $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Регистрация...');
+        });
+    });
+</script>
+{% endblock %}

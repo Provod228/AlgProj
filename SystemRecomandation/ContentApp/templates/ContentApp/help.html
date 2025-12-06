@@ -1,0 +1,70 @@
+<!-- help.html -->
+{% extends 'ContentApp/base.html' %}
+
+{% block title %}Помощь - Content App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-4">Справка</h1>
+
+                <div class="accordion" id="helpAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                Как получить рекомендации?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <p>Для получения персональных рекомендаций:</p>
+                                <ol>
+                                    <li>Добавьте товары в избранное (сердечко в карточке товара)</li>
+                                    <li>Оцените товары (от 1 до 5 звезд)</li>
+                                    <li>Перейдите на страницу "Рекомендации"</li>
+                                </ol>
+                                <p>Система проанализирует ваши предпочтения и предложит похожие товары.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                Что такое голосование за категории?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p>Вы можете голосовать "За" или "Против" определенных категорий для каждого товара.</p>
+                                <p>Это помогает улучшить рекомендации и точнее определить, к каким категориям относится товар.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                Как работает рейтинговая система?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p>Вы можете оценивать товары от 1 до 5 звезд. Средняя оценка отображается на странице товара.</p>
+                                <p>Рейтинг влияет на позицию товара в разделе "Популярное".</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h3>Контакты:</h3>
+                    <p>Если у вас есть вопросы, напишите нам на: <a href="mailto:support@contentapp.com">support@contentapp.com</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
