@@ -1,4 +1,3 @@
-# ContentApp/utils/recommendation_updater.py
 from ContentApp.services.recomendation import RecommendationEngine
 from ContentApp.services.data_get import ContentsService
 from django.core.cache import cache
